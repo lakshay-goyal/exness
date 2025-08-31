@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import { BidAskTicker, TradingViewChart } from '../components';
+import { BidAskTicker, TradingViewChart, OrderPanel, OrderHistory } from '../components';
 
 interface User {
   id: string;
@@ -13,6 +13,8 @@ interface User {
 const Dashboard: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<string>("BTCUSDT");
+  const [currentPrice, setCurrentPrice] = useState<{ bid: number; ask: number } | undefined>();
+  const [orderRefreshTrigger, setOrderRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,6 +69,14 @@ const Dashboard: React.FC = () => {
     setSelectedAsset(asset);
   };
 
+  const handlePriceUpdate = (price: { bid: number; ask: number }) => {
+    setCurrentPrice(price);
+  };
+
+  const handleOrderPlaced = () => {
+    setOrderRefreshTrigger(prev => prev + 1);
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
@@ -99,12 +109,28 @@ const Dashboard: React.FC = () => {
         <BidAskTicker 
           onAssetSelect={handleAssetSelect}
           selectedAsset={selectedAsset}
+          onPriceUpdate={handlePriceUpdate}
         />
         
-        {/* Right Content - TradingViewChart */}
-        <div className="flex-1 p-6">
-          <TradingViewChart selectedAsset={selectedAsset} />
+        {/* Center Content - TradingViewChart and OrderHistory */}
+        <div className="flex-1 flex flex-col">
+          {/* TradingViewChart */}
+          <div className="flex-1 p-6 pb-3">
+            <TradingViewChart selectedAsset={selectedAsset} />
+          </div>
+          
+          {/* OrderHistory */}
+          <div className="p-6 pt-3">
+            <OrderHistory selectedAsset={selectedAsset} refreshTrigger={orderRefreshTrigger} />
+          </div>
         </div>
+
+        {/* Right Sidebar - OrderPanel */}
+        <OrderPanel 
+          selectedAsset={selectedAsset}
+          currentPrice={currentPrice}
+          onOrderPlaced={handleOrderPlaced}
+        />
       </div>
     </div>
   );

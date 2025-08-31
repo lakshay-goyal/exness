@@ -19,15 +19,26 @@ interface WebSocketMessage {
 interface BidAskTickerProps {
   onAssetSelect?: (asset: string) => void;
   selectedAsset?: string;
+  onPriceUpdate?: (price: { bid: number; ask: number }) => void;
 }
 
-function BidAskTicker({ onAssetSelect, selectedAsset }: BidAskTickerProps) {
+function BidAskTicker({ onAssetSelect, selectedAsset, onPriceUpdate }: BidAskTickerProps) {
   const [bidAskMap, setBidAskMap] = useState<BidAskMap>({});
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
+
+  // Update parent with current price when selectedAsset changes
+  useEffect(() => {
+    if (selectedAsset && bidAskMap[selectedAsset] && onPriceUpdate) {
+      onPriceUpdate({
+        bid: bidAskMap[selectedAsset].bid,
+        ask: bidAskMap[selectedAsset].ask
+      });
+    }
+  }, [selectedAsset, bidAskMap, onPriceUpdate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,6 +69,11 @@ function BidAskTicker({ onAssetSelect, selectedAsset }: BidAskTickerProps) {
                   lastUpdate: Date.now(),
                 },
               }));
+              
+              // Update parent component with current price if this is the selected asset
+              if (selectedAsset === data.symbol && onPriceUpdate) {
+                onPriceUpdate({ bid: data.bid, ask: data.ask });
+              }
             } catch (parseError) {
               console.error("Error parsing WebSocket message:", parseError);
             }
@@ -155,6 +171,14 @@ function BidAskTicker({ onAssetSelect, selectedAsset }: BidAskTickerProps) {
   const handleAssetClick = (symbol: string) => {
     if (onAssetSelect) {
       onAssetSelect(symbol);
+    }
+    
+    // Immediately update the parent with current price data for the selected asset
+    if (onPriceUpdate && bidAskMap[symbol]) {
+      onPriceUpdate({
+        bid: bidAskMap[symbol].bid,
+        ask: bidAskMap[symbol].ask
+      });
     }
   };
 

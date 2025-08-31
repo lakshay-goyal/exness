@@ -121,167 +121,167 @@ const SignUp: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
       <Navbar />
       <div className="flex items-center justify-center px-4 py-8 min-h-[calc(100vh-80px)]">
-        <div className="max-w-md w-full">
-          {/* Header */}
-          <div className="text-center mb-8">
+      <div className="max-w-md w-full">
+        {/* Header */}
+        <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-white mb-2">Create your account</h2>
-            <p className="text-gray-300">Join thousands of traders worldwide</p>
-          </div>
+          <p className="text-gray-300">Join thousands of traders worldwide</p>
+        </div>
 
-          {/* Form */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {authError && (
-                <div className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded-lg">
-                  {authError}
-                </div>
+        {/* Form */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {authError && (
+              <div className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded-lg">
+                {authError}
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-white mb-2">
+                First Name
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  errors.firstName 
+                    ? 'border-red-500 bg-red-500/10' 
+                    : 'border-gray-600 bg-white/10'
+                } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                placeholder="Enter your first name"
+              />
+              {errors.firstName && (
+                <p className="text-red-400 text-sm mt-1">{errors.firstName}</p>
               )}
-              
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-white mb-2">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.firstName 
-                      ? 'border-red-500 bg-red-500/10' 
-                      : 'border-gray-600 bg-white/10'
-                  } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  placeholder="Enter your first name"
-                />
-                {errors.firstName && (
-                  <p className="text-red-400 text-sm mt-1">{errors.firstName}</p>
-                )}
-              </div>
+            </div>
 
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-white mb-2">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.lastName 
-                      ? 'border-red-500 bg-red-500/10' 
-                      : 'border-gray-600 bg-white/10'
-                  } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  placeholder="Enter your last name"
-                />
-                {errors.lastName && (
-                  <p className="text-red-400 text-sm mt-1">{errors.lastName}</p>
-                )}
-              </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-white mb-2">
+                Last Name
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  errors.lastName 
+                    ? 'border-red-500 bg-red-500/10' 
+                    : 'border-gray-600 bg-white/10'
+                } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                placeholder="Enter your last name"
+              />
+              {errors.lastName && (
+                <p className="text-red-400 text-sm mt-1">{errors.lastName}</p>
+              )}
+            </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.email 
-                      ? 'border-red-500 bg-red-500/10' 
-                      : 'border-gray-600 bg-white/10'
-                  } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  placeholder="Enter your email"
-                />
-                {errors.email && (
-                  <p className="text-red-400 text-sm mt-1">{errors.email}</p>
-                )}
-              </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  errors.email 
+                    ? 'border-red-500 bg-red-500/10' 
+                    : 'border-gray-600 bg-white/10'
+                } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                placeholder="Enter your email"
+              />
+              {errors.email && (
+                <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.password 
-                      ? 'border-red-500 bg-red-500/10' 
-                      : 'border-gray-600 bg-white/10'
-                  } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  placeholder="Create a strong password"
-                />
-                {errors.password && (
-                  <p className="text-red-400 text-sm mt-1">{errors.password}</p>
-                )}
-              </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  errors.password 
+                    ? 'border-red-500 bg-red-500/10' 
+                    : 'border-gray-600 bg-white/10'
+                } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                placeholder="Create a strong password"
+              />
+              {errors.password && (
+                <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+              )}
+            </div>
 
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-2">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.confirmPassword 
-                      ? 'border-red-500 bg-red-500/10' 
-                      : 'border-gray-600 bg-white/10'
-                  } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  placeholder="Confirm your password"
-                />
-                {errors.confirmPassword && (
-                  <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
-                )}
-              </div>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-2">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  errors.confirmPassword 
+                    ? 'border-red-500 bg-red-500/10' 
+                    : 'border-gray-600 bg-white/10'
+                } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                placeholder="Confirm your password"
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
+              )}
+            </div>
 
-              <div className="flex items-start">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  className="mt-1 rounded border-gray-600 bg-white/10 text-blue-600 focus:ring-blue-500"
-                  required
-                />
-                <label htmlFor="terms" className="ml-2 text-sm text-gray-300">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-blue-400 hover:text-blue-300">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-blue-400 hover:text-blue-300">
-                    Privacy Policy
-                  </Link>
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent"
-              >
-                {isLoading ? 'Creating account...' : 'Create Account'}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-gray-300">
-                Already have an account?{' '}
-                <Link to="/signin" className="text-blue-400 hover:text-blue-300 font-semibold">
-                  Sign in
+            <div className="flex items-start">
+              <input
+                type="checkbox"
+                id="terms"
+                className="mt-1 rounded border-gray-600 bg-white/10 text-blue-600 focus:ring-blue-500"
+                required
+              />
+              <label htmlFor="terms" className="ml-2 text-sm text-gray-300">
+                I agree to the{' '}
+                <Link to="/terms" className="text-blue-400 hover:text-blue-300">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy" className="text-blue-400 hover:text-blue-300">
+                  Privacy Policy
                 </Link>
-              </p>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-transparent"
+            >
+              {isLoading ? 'Creating account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-gray-300">
+              Already have an account?{' '}
+              <Link to="/signin" className="text-blue-400 hover:text-blue-300 font-semibold">
+                Sign in
+              </Link>
+            </p>
             </div>
           </div>
         </div>

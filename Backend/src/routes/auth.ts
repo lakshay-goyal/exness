@@ -50,6 +50,7 @@ router.post('/signup', async (req: Request, res: Response) => {
       lastName,
       email,
       password: hashedPassword,
+      balance: '0.00', // Default balance for new users
     }).returning();
 
     if (!newUser[0]) {
@@ -67,7 +68,6 @@ router.post('/signup', async (req: Request, res: Response) => {
     });
 
     res.status(200).json({
-      message: 'User created successfully',
       user: {
         id: newUser[0].id,
         firstName: newUser[0].firstName,
