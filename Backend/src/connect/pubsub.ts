@@ -9,15 +9,11 @@ await subscriber.connect();
 
 await subscriber.subscribe("binance:pubsub", (message) => {
   const data = JSON.parse(message); // { symbol: 'ETHUSDT', bid: 4476.1, ask: 4478.1 }
-  console.log("📩 Received via Pub/Sub:", data);
-
   // normalize symbol key to lowercase
   const key = data.symbol.toLowerCase();
 
   // update prices object
   prices[key] = { bid: data.bid, ask: data.ask };
-
-  console.log("📊 Latest Prices:", prices);
 });
 
 export { subscriber };

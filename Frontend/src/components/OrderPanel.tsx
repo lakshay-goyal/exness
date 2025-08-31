@@ -235,7 +235,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                  <div>Symbol: {orderResult.order.symbol}</div>
                  <div>Type: {orderResult.order.type}</div>
                  <div>Quantity: {orderResult.order.quantity}</div>
-                 <div>Price: ${orderResult.order.openprice}</div>
+                 <div>Price: ${orderResult.order.openPrice}</div>
                  <div>Margin: ${orderResult.order.margin}</div>
                </div>
              </div>

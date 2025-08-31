@@ -1,4 +1,3 @@
-import { getTimeRange, RetreiveData } from "../utils/candle.js";
 import { Router, type Request, type Response } from "express";
 import { OpenOrder } from "../utils/order.js";
 import { subscriber } from "../connect/pubsub.js";
@@ -36,12 +35,16 @@ router.post("/open", authMiddleware, async (req: Request & { user?: any }, res: 
       });
     }
 
+    // userId: req.user.id,
     const order = await OpenOrder({ 
       userId: req.user.id,
       symbol: String(symbol), 
       type: String(type), 
       quantity: Number(quantity), 
-      leverage: Number(leverage) 
+      leverage: Number(leverage),
+      openPrice: Number(prices[symbolKey].bid),
+      // openTime: new Date(),
+      status: "open",
     });
 
     console.log("📋 Order created:", order);

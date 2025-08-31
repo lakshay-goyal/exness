@@ -22,14 +22,10 @@ export const orders = pgTable('orders', {
   closePrice: decimal({ precision: 20, scale: 8 }), // Price when order was closed
   margin: decimal({ precision: 20, scale: 8 }).notNull(), // Required margin
   profitLoss: decimal({ precision: 20, scale: 8 }), // Profit/Loss amount
-  profitLossPercentage: decimal({ precision: 10, scale: 4 }), // Profit/Loss percentage
   status: varchar({ length: 20 }).notNull().default('open'), // 'open', 'closed', 'cancelled'
   stopLoss: decimal({ precision: 20, scale: 8 }), // Stop loss price
-  takeProfit: decimal({ precision: 20, scale: 8 }), // Take profit price
   openTime: timestamp().notNull().defaultNow(),
   closeTime: timestamp(), // When order was closed
-  notes: text(), // Additional notes
-  isActive: boolean().notNull().default(true), // Whether the order is active
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),
 });
