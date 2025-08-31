@@ -1,12 +1,13 @@
 import { Router, type Request, type Response } from "express";
-import { OpenOrder } from "../utils/order.js";
+import { OpenOrder, GetOpenOrders, GetClosedOrders } from "../utils/order.js";
 import { subscriber } from "../connect/pubsub.js";
 import { prices } from "../utils/price.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
 
-router.post("/open", authMiddleware, async (req: Request & { user?: any }, res: Response) => {
+// POST /order/trade - Create a new order
+router.post("/trade", authMiddleware, async (req: Request & { user?: any }, res: Response) => {
   const { symbol, type, quantity, leverage } = req.body;
 
   // Check if user is attached by authMiddleware
@@ -15,7 +16,7 @@ router.post("/open", authMiddleware, async (req: Request & { user?: any }, res: 
   }
 
   if (!symbol || !type || !quantity || !leverage) {
-    return res.status(400).send("Missing required query parameters");
+    return res.status(400).json({ error: "Missing required parameters: symbol, type, quantity, leverage" });
   }
 
   try {
@@ -35,14 +36,12 @@ router.post("/open", authMiddleware, async (req: Request & { user?: any }, res: 
       });
     }
 
-    // userId: req.user.id,
     const order = await OpenOrder({ 
       userId: req.user.id,
       symbol: String(symbol), 
-      type: String(type), 
+      type: String(type).toLowerCase(), // Convert to lowercase to match schema
       quantity: Number(quantity), 
       leverage: Number(leverage),
-      openPrice: Number(prices[symbolKey].bid),
       status: "open",
     });
 
@@ -51,12 +50,49 @@ router.post("/open", authMiddleware, async (req: Request & { user?: any }, res: 
 
     res.json({ 
       order,
+      message: "Order created successfully"
     });
 
   } catch (error) {
     console.error("❌ Error creating order:", error);
     res.status(500).json({ 
       error: "Failed to create order",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+// GET /order/open - Get all open orders for a user
+router.get("/open", authMiddleware, async (req: Request & { user?: any }, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Unauthorized: user not found" });
+  }
+
+  try {
+    const orders = await GetOpenOrders({ userId: req.user.id });
+    res.json({ orders });
+  } catch (error) {
+    console.error("❌ Error retrieving open orders:", error);
+    res.status(500).json({ 
+      error: "Failed to retrieve open orders",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+// GET /order/close - Get all closed orders for a user
+router.get("/close", authMiddleware, async (req: Request & { user?: any }, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Unauthorized: user not found" });
+  }
+
+  try {
+    const orders = await GetClosedOrders({ userId: req.user.id });
+    res.json({ orders });
+  } catch (error) {
+    console.error("❌ Error retrieving closed orders:", error);
+    res.status(500).json({ 
+      error: "Failed to retrieve closed orders",
       details: error instanceof Error ? error.message : "Unknown error"
     });
   }

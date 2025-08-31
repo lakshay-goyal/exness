@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { orderAPI } from '../utils/api';
 
 interface Order {
   id: string;
   symbol: string;
   type: 'buy' | 'sell';
-  quantity: number;
+  quantity: string;
   leverage: number;
-  openprice: number;
+  openPrice: string;
   openTime: string;
-  margin: number;
+  margin: string;
   status: 'open' | 'closed';
   closeTime?: string;
-  closeprice?: number;
-  pnl?: number;
+  closePrice?: string;
+  profitLoss?: string;
 }
 
 interface OrderHistoryProps {
@@ -27,64 +27,31 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ selectedAsset, refreshTrigg
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock data for demonstration - replace with actual API calls
-  const mockOrders: Order[] = [
-    {
-      id: '1',
-      symbol: 'BTCUSDT',
-      type: 'buy',
-      quantity: 0.1,
-      leverage: 10,
-      openprice: 45000.50,
-      openTime: '2024-01-15T10:30:00Z',
-      margin: 450.05,
-      status: 'open'
-    },
-    {
-      id: '2',
-      symbol: 'ETHUSDT',
-      type: 'sell',
-      quantity: 0.5,
-      leverage: 5,
-      openprice: 2800.25,
-      openTime: '2024-01-15T09:15:00Z',
-      margin: 280.03,
-      status: 'open'
-    },
-    {
-      id: '3',
-      symbol: 'SOLUSDT',
-      type: 'buy',
-      quantity: 2.0,
-      leverage: 20,
-      openprice: 95.75,
-      openTime: '2024-01-14T14:20:00Z',
-      closeTime: '2024-01-15T11:45:00Z',
-      closeprice: 98.25,
-      margin: 9.58,
-      pnl: 5.0,
-      status: 'closed'
-    },
-    {
-      id: '4',
-      symbol: 'ADAUSDT',
-      type: 'sell',
-      quantity: 100,
-      leverage: 15,
-      openprice: 0.485,
-      openTime: '2024-01-13T16:30:00Z',
-      closeTime: '2024-01-14T10:15:00Z',
-      closeprice: 0.472,
-      margin: 3.23,
-      pnl: -2.7,
-      status: 'closed'
+  // Fetch orders from API
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      let response;
+      if (activeTab === 'open') {
+        response = await orderAPI.getOpenOrders();
+      } else {
+        response = await orderAPI.getClosedOrders();
+      }
+      
+      setOrders(response.data.orders || []);
+    } catch (error: any) {
+      console.error("❌ Error fetching orders:", error);
+      setError(error.response?.data?.error || "Failed to fetch orders");
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
 
   useEffect(() => {
-    // In a real app, fetch orders from API
-    setOrders(mockOrders);
-  }, [refreshTrigger]); // Refresh when refreshTrigger changes
+    fetchOrders();
+  }, [activeTab, refreshTrigger]); // Refresh when tab changes or refreshTrigger changes
 
   const openOrders = orders.filter(order => order.status === 'open');
   const closedOrders = orders.filter(order => order.status === 'closed');
@@ -93,13 +60,15 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ selectedAsset, refreshTrigg
     return type === 'buy' ? 'text-green-400' : 'text-red-400';
   };
 
-  const getPnlColor = (pnl?: number) => {
+  const getPnlColor = (pnl?: string) => {
     if (!pnl) return 'text-gray-400';
-    return pnl >= 0 ? 'text-green-400' : 'text-red-400';
+    const pnlNum = parseFloat(pnl);
+    return pnlNum >= 0 ? 'text-green-400' : 'text-red-400';
   };
 
-  const formatPrice = (price: number) => {
-    return price.toLocaleString(undefined, {
+  const formatPrice = (price: string) => {
+    const numPrice = parseFloat(price);
+    return numPrice.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 8,
     });
@@ -109,8 +78,9 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ selectedAsset, refreshTrigg
     return new Date(dateString).toLocaleString();
   };
 
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+  const formatCurrency = (amount: string) => {
+    const numAmount = parseFloat(amount);
+    return `$${numAmount.toFixed(2)}`;
   };
 
   const renderOrderRow = (order: Order) => (
@@ -135,11 +105,11 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ selectedAsset, refreshTrigg
         {order.leverage}x
       </td>
       <td className="px-4 py-3 text-sm text-white">
-        ${formatPrice(order.openprice)}
+        ${formatPrice(order.openPrice)}
       </td>
-      {order.status === 'closed' && order.closeprice && (
+      {order.status === 'closed' && order.closePrice && (
         <td className="px-4 py-3 text-sm text-white">
-          ${formatPrice(order.closeprice)}
+          ${formatPrice(order.closePrice)}
         </td>
       )}
       <td className="px-4 py-3 text-sm text-white">
@@ -147,8 +117,8 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ selectedAsset, refreshTrigg
       </td>
       {order.status === 'closed' && (
         <td className="px-4 py-3 text-sm">
-          <span className={`font-semibold ${getPnlColor(order.pnl)}`}>
-            {order.pnl ? `${order.pnl > 0 ? '+' : ''}${order.pnl.toFixed(2)}%` : '-'}
+          <span className={`font-semibold ${getPnlColor(order.profitLoss)}`}>
+            {order.profitLoss ? `${parseFloat(order.profitLoss) > 0 ? '+' : ''}${parseFloat(order.profitLoss).toFixed(2)}%` : '-'}
           </span>
         </td>
       )}

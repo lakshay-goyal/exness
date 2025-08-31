@@ -3,6 +3,7 @@ import { type Orders } from "../interface.js";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { orders } from "../db/schema.js";
+import { eq, and } from "drizzle-orm";
 
 // Initialize database connection
 const sql = neon(process.env.DATABASE_URL!);
@@ -51,12 +52,13 @@ export async function OpenOrder({
     isActive: true,
   };
 
+  console.log("📋 Order details:", order);
+
   try {
     // Store order in database
     const [insertedOrder] = await db.insert(orders).values(order).returning();
     console.log("✅ Order stored in database:", insertedOrder);
 
-    console.log("📋 Order details:", order);
     return {
       ...order,
       id: insertedOrder?.id || undefined,
@@ -64,5 +66,49 @@ export async function OpenOrder({
   } catch (error) {
     console.error("❌ Error storing order in database:", error);
     throw new Error(`Failed to store order in database: ${error}`);
+  }
+}
+
+// Function to get open orders for a user
+export async function GetOpenOrders({ userId }: { userId: string }) {
+  try {
+    const openOrders = await db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.userId, userId),
+          eq(orders.status, 'open')
+        )
+      )
+      .orderBy(orders.openTime);
+    
+    console.log("📋 Retrieved open orders:", openOrders);
+    return openOrders;
+  } catch (error) {
+    console.error("❌ Error retrieving open orders:", error);
+    throw new Error(`Failed to retrieve open orders: ${error}`);
+  }
+}
+
+// Function to get closed orders for a user
+export async function GetClosedOrders({ userId }: { userId: string }) {
+  try {
+    const closedOrders = await db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.userId, userId),
+          eq(orders.status, 'closed')
+        )
+      )
+      .orderBy(orders.closeTime);
+    
+    console.log("📋 Retrieved closed orders:", closedOrders);
+    return closedOrders;
+  } catch (error) {
+    console.error("❌ Error retrieving closed orders:", error);
+    throw new Error(`Failed to retrieve closed orders: ${error}`);
   }
 }

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'http://localhost:3000',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -37,5 +37,22 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Order API functions
+export const orderAPI = {
+  // Create a new order
+  createOrder: (orderData: {
+    symbol: string;
+    type: string;
+    quantity: number;
+    leverage: number;
+  }) => api.post('/order/trade', orderData),
+
+  // Get open orders
+  getOpenOrders: () => api.get('/order/open'),
+
+  // Get closed orders
+  getClosedOrders: () => api.get('/order/close'),
+};
 
 export default api;

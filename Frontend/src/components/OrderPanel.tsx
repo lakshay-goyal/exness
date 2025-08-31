@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from 'axios';
+import { orderAPI } from '../utils/api';
 
 interface OrderPanelProps {
   selectedAsset?: string;
@@ -25,13 +25,6 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
       return;
     }
 
-    // Get JWT token from localStorage
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError("Authentication required. Please sign in again.");
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     setOrderResult(null);
@@ -46,12 +39,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
 
       console.log("📤 Sending order request:", orderData);
 
-      const response = await axios.post('http://localhost:3000/order/open', orderData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await orderAPI.createOrder(orderData);
 
       console.log("✅ Order placed successfully:", response.data);
       setOrderResult(response.data);
