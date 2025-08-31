@@ -51,13 +51,12 @@ export async function OpenOrder({
     isActive: true,
   };
 
-  console.log("📋 Order details:", order);
-
   try {
     // Store order in database
     const [insertedOrder] = await db.insert(orders).values(order).returning();
     console.log("✅ Order stored in database:", insertedOrder);
 
+    console.log("📋 Order details:", order);
     return {
       ...order,
       id: insertedOrder?.id || undefined,

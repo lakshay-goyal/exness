@@ -43,7 +43,6 @@ router.post("/open", authMiddleware, async (req: Request & { user?: any }, res: 
       quantity: Number(quantity), 
       leverage: Number(leverage),
       openPrice: Number(prices[symbolKey].bid),
-      // openTime: new Date(),
       status: "open",
     });
 
