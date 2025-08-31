@@ -1,5 +1,7 @@
 import {subscriber} from './connect/pubsub.js'
 import {wss} from './connect/ws.js'
+import dotenv from "dotenv";
+dotenv.config();
 
 wss.on("connection", async (socket) => {
   console.log("Client connected");

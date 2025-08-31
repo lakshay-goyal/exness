@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: batch_uploader_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: batch_uploader_timescaledb
+    environment:
+      - POSTGRES_USER=process.env.DB_USER
+      - POSTGRES_PASSWORD=process.env.DB_PASSWORD
+      - POSTGRES_DB=process.env.DB_NAME
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timescaledb -d exness"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  batch_uploader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: batch_uploader_app
+    depends_on:
+      redis:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=process.env.REDIS_URL
+      - DB_USER=process.env.DB_USER
+      - DB_PASSWORD=process.env.DB_PASSWORD
+      - DB_HOST=process.env.DB_HOST
+      - DB_PORT=process.env.DB_PORT
+      - DB_NAME=process.env.DB_NAME
+    restart: unless-stopped
+    networks:
+      - batch_uploader_network
+
+volumes:
+  redis_data:
+  timescaledb_data:
+
+networks:
+  batch_uploader_network:
+    driver: bridge
