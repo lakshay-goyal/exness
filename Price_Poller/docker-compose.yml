@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  price_poller:
+    build: .
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=process.env.REDIS_URL
+      - BINANCE_WS_URL=process.env.BINANCE_WS_URL
