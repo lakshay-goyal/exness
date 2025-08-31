@@ -5,7 +5,7 @@ const ws = new WebSocket(
 );
 
 ws.on("open", () => {
-  console.log("✅ Connected to Binance WebSocket");
+  console.log("Connected to Binance WebSocket");
 });
 
 export { ws };

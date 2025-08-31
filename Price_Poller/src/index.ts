@@ -14,7 +14,6 @@ ws.on("message", async (data) => {
 
     // 3. Push to Redis queue (using a list)
     await redisClient.rPush("binance:trades", JSON.stringify(msg));
-    console.log("Message pushed to Redis queue:", msg.data?.s, msg.data?.p);
 
     // 4. Compute bid/ask
     const symbol = msg.data?.s;

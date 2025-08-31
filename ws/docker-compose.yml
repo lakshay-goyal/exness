@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: ws_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ws_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ws_server
+    ports:
+      - "7070:7070"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=process.env.REDIS_URL
+    restart: unless-stopped
+    networks:
+      - ws_network
+
+volumes:
+  redis_data:
+
+networks:
+  ws_network:
+    driver: bridge
