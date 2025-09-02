@@ -18,9 +18,11 @@ app.use(express.urlencoded({ extended: true }));
 import authRoutes from './routes/auth.js';
 import priceRoutes from './routes/price.js';
 import orderRoutes from './routes/order.js';
-app.use('/api/auth', authRoutes);
+import dataRoutes from './routes/data.js';
+app.use('/auth', authRoutes);
 app.use('/price', priceRoutes);
 app.use('/order', orderRoutes);
+app.use('/data', dataRoutes);
 
 // 404 handler
 app.use('*', (req: express.Request, res: express.Response) => {

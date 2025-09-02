@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { orderAPI } from '../utils/api';
+import useBidAskValue from "../utils/BidAskValue";
 
 interface OrderPanelProps {
-  selectedAsset?: string;
+  selectedAsset?: string ;
   currentPrice?: { bid: number; ask: number };
   onOrderPlaced?: () => void; // Callback to trigger order history refresh
 }
@@ -19,8 +20,15 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
   const [orderResult, setOrderResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Live bid/ask fallback if not provided from parent
+  const { bidAskMap } = useBidAskValue();
+  const livePrice = selectedAsset && bidAskMap[selectedAsset]
+    ? { bid: bidAskMap[selectedAsset].bid, ask: bidAskMap[selectedAsset].ask }
+    : undefined;
+  const displayPrice = currentPrice ?? livePrice;
+
   const handlePlaceOrder = async () => {
-    if (!selectedAsset || !currentPrice || quantity <= 0) {
+    if (!selectedAsset || !displayPrice || quantity <= 0) {
       setError("Please select an asset and enter a valid quantity");
       return;
     }
@@ -70,7 +78,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
   };
 
   return (
-    <div className="w-80 bg-gray-800 border-l border-gray-700 h-screen overflow-y-auto flex flex-col">
+    <div className="w-80 bg-gray-800 border-l border-gray-700 h-full overflow-hidden flex flex-col">
       <div className="p-4 border-b border-gray-700">
         <h2 className="text-xl font-bold text-white">Order Panel</h2>
       </div>
@@ -90,13 +98,13 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                 </span>
               </div>
 
-              {currentPrice ? (
+              {displayPrice ? (
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400">Buy:</span>
                     <span className="text-green-400 font-mono">
                       $
-                      {currentPrice.ask.toLocaleString(undefined, {
+                      {displayPrice.ask.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 8,
                       })}
@@ -107,7 +115,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                     <span className="text-gray-400">Sell:</span>
                     <span className="text-red-400 font-mono">
                       $
-                      {currentPrice.bid.toLocaleString(undefined, {
+                      {displayPrice.bid.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 8,
                       })}
@@ -192,7 +200,7 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
 
                      <button 
              onClick={handlePlaceOrder}
-             disabled={isLoading || !selectedAsset || !currentPrice || quantity <= 0}
+             disabled={isLoading || !selectedAsset || !displayPrice || quantity <= 0}
              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-md transition-colors"
            >
              {isLoading ? "Placing Order..." : `Place ${side.toUpperCase()} Order`}
@@ -218,13 +226,6 @@ const OrderPanel: React.FC<OrderPanelProps> = ({
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                  </svg>
                  <span className="text-green-400 text-sm font-semibold">Order Placed Successfully!</span>
-               </div>
-               <div className="text-green-300 text-xs">
-                 <div>Symbol: {orderResult.order.symbol}</div>
-                 <div>Type: {orderResult.order.type}</div>
-                 <div>Quantity: {orderResult.order.quantity}</div>
-                 <div>Price: ${orderResult.order.openPrice}</div>
-                 <div>Margin: ${orderResult.order.margin}</div>
                </div>
              </div>
            )}

@@ -1,23 +1,22 @@
-import { type RetreiveDataParams } from "../interface.js";
-import { client } from "../connect/redis.js";
+import { client } from "../connect/postgres.js";
 
-export async function RetreiveData({
-  symbol,
-  intervals,
-  from,
-  to,
-}: RetreiveDataParams) {
+export async function RetreiveData(
+  symbol: string,
+  intervals: string,
+  from: string,
+  to: string
+) {
   try {
     const table = `candles_${intervals}`;
 
     const query = `
-          SELECT bucket AS time,
-                 open, high, low, close, volume, trade_count
-          FROM ${table}
-          WHERE symbol = $1
-            AND bucket BETWEEN $2 AND $3
-          ORDER BY bucket ASC;
-        `;
+      SELECT bucket AS time,
+             open, high, low, close, volume, trade_count
+      FROM ${table}
+      WHERE symbol = $1
+        AND bucket BETWEEN $2 AND $3
+      ORDER BY bucket ASC;
+    `;
 
     const values = [symbol, from, to];
     const result = await client.query(query, values);

@@ -5,7 +5,7 @@ dotenv.config();
 
 const client = new Client({
   user: process.env.DB_USER!,
-  password: process.env.DB_PASSWORD || 'password',
+  password: process.env.DB_PASSWORD || "password",
   host: process.env.DB_HOST!,
   port: parseInt(process.env.DB_PORT!),
   database: process.env.DB_NAME!,
@@ -34,7 +34,9 @@ export async function setupTimescale() {
     console.log("Ensured trades table exists");
 
     // Convert to hypertable
-    await client.query("SELECT create_hypertable('trades', 'time', if_not_exists => TRUE);");
+    await client.query(
+      "SELECT create_hypertable('trades', 'time', if_not_exists => TRUE);"
+    );
     console.log("Created hypertable (or already exists)");
 
     // Index for symbol
@@ -59,36 +61,47 @@ export async function setupTimescale() {
     for (const { interval, name, start } of intervals) {
       // Create continuous aggregate
       await client.query(`
-        CREATE MATERIALIZED VIEW IF NOT EXISTS candles_${name}
-        WITH (timescaledb.continuous) AS
-        SELECT
-          symbol,
-          time_bucket('${interval}', time) AS bucket,
-          FIRST(price, time) AS open,
-          MAX(price) AS high,
-          MIN(price) AS low,
-          LAST(price, time) AS close,
-          SUM(volume) AS volume,
-          COUNT(*) AS trade_count
-        FROM trades
-        GROUP BY symbol, bucket
-        WITH NO DATA;
-      `);
+    CREATE MATERIALIZED VIEW IF NOT EXISTS candles_${name}
+    WITH (timescaledb.continuous) AS
+    SELECT
+      symbol,
+      time_bucket('${interval}', time) AS bucket,
+      FIRST(price, time) AS open,
+      MAX(price) AS high,
+      MIN(price) AS low,
+      LAST(price, time) AS close,
+      SUM(volume) AS volume,
+      COUNT(*) AS trade_count
+    FROM trades
+    GROUP BY symbol, bucket
+    WITH NO DATA;
+  `);
 
       // Index
       await client.query(`
-        CREATE INDEX IF NOT EXISTS idx_candles_${name}_symbol_time
-        ON candles_${name} (symbol, bucket DESC);
-      `);
+    CREATE INDEX IF NOT EXISTS idx_candles_${name}_symbol_time
+    ON candles_${name} (symbol, bucket DESC);
+  `);
 
-      // Refresh policy with dynamic start_offset
-      await client.query(`
-        SELECT add_continuous_aggregate_policy('candles_${name}',
-          start_offset => INTERVAL '${start}',
-          end_offset   => INTERVAL '${interval}',
-          schedule_interval => INTERVAL '${interval}'
-        );
-      `);
+      // Check if a policy exists
+      const { rows } = await client.query(`
+    SELECT 1 FROM timescaledb_information.jobs
+    WHERE hypertable_name = 'candles_${name}'
+      AND proc_name = 'policy_refresh_continuous_aggregate';
+  `);
+
+      if (rows.length === 0) {
+        await client.query(`
+      SELECT add_continuous_aggregate_policy('candles_${name}',
+        start_offset => INTERVAL '${start}',
+        end_offset   => INTERVAL '${interval}',
+        schedule_interval => INTERVAL '${interval}'
+      );
+    `);
+        console.log(`Added refresh policy for candles_${name}`);
+      } else {
+        console.log(`Policy already exists for candles_${name}, skipping`);
+      }
     }
 
     console.log("TimescaleDB setup completed with multiple intervals!");

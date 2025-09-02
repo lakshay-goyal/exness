@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
-import { BidAskTicker, TradingViewChart, OrderPanel, OrderHistory } from '../components';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
+import useBidAskValue from "../utils/BidAskValue";
+import BidAsk from "../components/BidAsk";
+import TradingViewChart from "../components/TradingViewChart";
+import OrderPanel from "../components/OrderPanel";
+import OrderHistory from "../components/OrderHistory";
 
 interface User {
   id: string;
@@ -10,33 +14,40 @@ interface User {
   lastName: string;
 }
 
-const Dashboard: React.FC = () => {
+function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
-  const [selectedAsset, setSelectedAsset] = useState<string>("BTCUSDT");
-  const [currentPrice, setCurrentPrice] = useState<{ bid: number; ask: number } | undefined>();
-  const [orderRefreshTrigger, setOrderRefreshTrigger] = useState(0);
   const navigate = useNavigate();
+  const { bidAskMap, isConnected, error: wsError } = useBidAskValue();
+  const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
+  const currentPrice = selectedAsset && bidAskMap[selectedAsset]
+    ? { bid: bidAskMap[selectedAsset].bid, ask: bidAskMap[selectedAsset].ask }
+    : undefined;
+
+  const handleOrderPlaced = () => {
+    setRefreshTrigger((v) => v + 1);
+  };
   useEffect(() => {
     // Check if user is authenticated
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      navigate('/signin');
+      navigate("/signin");
       return;
     }
 
     // Get user info from localStorage
-    const userStr = localStorage.getItem('user');
+    const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
         const userData = JSON.parse(userStr);
         setUser(userData);
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error("Error parsing user data:", error);
         // If user data is corrupted, clear it and redirect to signin
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        navigate('/signin');
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        navigate("/signin");
       }
     } else {
       // If no user data, try to fetch it from the backend
@@ -46,37 +57,24 @@ const Dashboard: React.FC = () => {
 
   const fetchUserData = async () => {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get("/auth/me");
       const userData = response.data;
       setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(userData));
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error("Error fetching user data:", error);
       // On error, clear storage and redirect
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      navigate('/signin');
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/signin");
     }
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
   };
-
-  const handleAssetSelect = (asset: string) => {
-    setSelectedAsset(asset);
-  };
-
-  const handlePriceUpdate = (price: { bid: number; ask: number }) => {
-    setCurrentPrice(price);
-  };
-
-  const handleOrderPlaced = () => {
-    setOrderRefreshTrigger(prev => prev + 1);
-  };
-
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
@@ -84,9 +82,8 @@ const Dashboard: React.FC = () => {
       </div>
     );
   }
-
   return (
-    <div className="min-h-screen bg-gray-900">
+    <>
       {/* Navigation */}
       <nav className="flex justify-between items-center px-6 py-4 bg-gray-800 border-b border-gray-700">
         <div className="text-white text-2xl font-bold">Exness</div>
@@ -102,38 +99,43 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </nav>
+      <div className="grid grid-cols-9 h-[calc(100vh-64px)] gap-0 overflow-y-auto">{/* 64px ~ nav height */}
+        {/* Left 2/9: BidAsk Sidebar */}
+        <div className="col-span-2 h-full">
+          <BidAsk
+            bidAskMap={bidAskMap}
+            isConnected={isConnected}
+            error={wsError}
+            selectedAsset={selectedAsset}
+            onSelectAsset={setSelectedAsset}
+          />
+        </div>
 
-      {/* Main Content */}
-      <div className="flex h-[calc(100vh-80px)]">
-        {/* Left Sidebar - BidAskTicker */}
-        <BidAskTicker 
-          onAssetSelect={handleAssetSelect}
-          selectedAsset={selectedAsset}
-          onPriceUpdate={handlePriceUpdate}
-        />
-        
-        {/* Center Content - TradingViewChart and OrderHistory */}
-        <div className="flex-1 flex flex-col">
-          {/* TradingViewChart */}
-          <div className="flex-1 p-6 pb-3">
-            <TradingViewChart selectedAsset={selectedAsset} />
+        {/* Center 5/9: Chart area (height = 50vh) + Order History below */}
+        <div className="col-span-5 flex flex-col overflow-hidden">
+          <div className="flex items-start justify-center h-[100vh] ">
+            <TradingViewChart selectedAsset={selectedAsset ?? "BTCUSDT"} heightPx={Math.floor(window.innerHeight * 0.5)} />
           </div>
-          
-          {/* OrderHistory */}
-          <div className="p-6 pt-3">
-            <OrderHistory selectedAsset={selectedAsset} refreshTrigger={orderRefreshTrigger} />
+          <div className="">
+            <OrderHistory
+              refreshTrigger={refreshTrigger}
+              bidAskData={Object.fromEntries(
+                Object.entries(bidAskMap).map(([s, { bid, ask }]) => [s, { bid, ask }])
+              )}
+            />
           </div>
         </div>
 
-        {/* Right Sidebar - OrderPanel */}
-        <OrderPanel 
-          selectedAsset={selectedAsset}
-          currentPrice={currentPrice}
-          onOrderPlaced={handleOrderPlaced}
-        />
+        {/* Right 2/9: Order Panel */}
+        <div className="col-span-2 text-white">
+          <OrderPanel selectedAsset={selectedAsset ?? undefined} currentPrice={currentPrice} onOrderPlaced={handleOrderPlaced} />
+        </div>
       </div>
-    </div>
+
+
+      
+    </>
   );
-};
+}
 
 export default Dashboard;

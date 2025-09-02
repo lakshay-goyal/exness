@@ -5,9 +5,10 @@ import axios from "axios";
 
 interface TradingViewChartProps {
   selectedAsset?: string;
+  heightPx?: number;
 }
 
-const TradingViewChart: React.FC<TradingViewChartProps> = ({ selectedAsset = "BTCUSDT" }) => {
+const TradingViewChart: React.FC<TradingViewChartProps> = ({ selectedAsset = "BTCUSDT", heightPx = 500 }) => {
   const chartRef = useRef<HTMLDivElement | null>(null);
   const [asset, setAsset] = React.useState(selectedAsset);
   const [time, setTime] = React.useState("1m");
@@ -71,7 +72,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({ selectedAsset = "BT
         background: { type: ColorType.Solid, color: "#1f2937" },
       },
       width: chartRef.current.clientWidth,
-      height: 500,
+      height: heightPx,
       grid: { 
         vertLines: { color: "#374151" }, 
         horzLines: { color: "#374151" }
@@ -130,10 +131,10 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({ selectedAsset = "BT
       chart.remove();
       window.removeEventListener('resize', handleResize);
     };
-  }, [asset, time]);
+  }, [asset, time, heightPx]);
 
   return (
-    <div className="flex-1 bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+    <div className="flex-1 bg-gray-800 shadow-lg overflow-hidden">
       {/* Header */}
       <div className="bg-gray-900 px-6 py-4 border-b border-gray-700">
 
@@ -156,7 +157,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({ selectedAsset = "BT
       </div>
 
       {/* Chart Container */}
-      <div className="relative">
+      <div className="relative" style={{ height: heightPx }}>
         {isLoading && (
           <div className="absolute inset-0 bg-gray-800/50 flex items-center justify-center z-10">
             <div className="flex items-center space-x-2">
@@ -185,15 +186,11 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({ selectedAsset = "BT
           </div>
         )}
 
-        <div ref={chartRef} className="w-full h-[500px] p-4" />
+        <div ref={chartRef} className="w-full h-full" />
       </div>
 
       {/* Footer */}
       <div className="bg-gray-900 px-6 py-3 border-t border-gray-700">
-        <div className="flex items-center justify-between text-xs text-gray-400">
-          <span>TradingView Lightweight Charts</span>
-          <span>{new Date().toLocaleTimeString()}</span>
-        </div>
       </div>
     </div>
   );
