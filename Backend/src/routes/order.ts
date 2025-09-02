@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { OpenOrder, GetOpenOrders, GetClosedOrders } from "../utils/order.js";
+import { OpenOrder, GetOpenOrders, GetClosedOrders, CloseOrder } from "../utils/order.js";
 import { subscriber } from "../connect/pubsub.js";
 import { prices } from "../utils/price.js";
 import { authMiddleware } from "../middleware/auth.js";
@@ -80,8 +80,36 @@ router.get("/open", authMiddleware, async (req: Request & { user?: any }, res: R
   }
 });
 
-// GET /order/close - Get all closed orders for a user
+// POST /order/close - Close an open order for a user
+router.post("/close", authMiddleware, async (req: Request & { user?: any }, res: Response) => {
+  const { orderId } = req.body;
+
+  if (!req.user) {
+    return res.status(401).json({ error: "Unauthorized: user not found" });
+  }
+
+  if (!orderId) {
+    return res.status(400).json({ error: "Missing required parameter: orderId" });
+  }
+
+  try {
+    const closedOrder = await CloseOrder(orderId, req.user.id);
+    res.json({ 
+      order: closedOrder,
+      message: "Order closed successfully"
+     });
+  } catch (error) {
+    console.error("❌ Error closing order:", error);
+    res.status(500).json({
+      error: "Failed to close order",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+// GET /order/closed - Get all closed orders for a user
 router.get("/close", authMiddleware, async (req: Request & { user?: any }, res: Response) => {
+
   if (!req.user) {
     return res.status(401).json({ error: "Unauthorized: user not found" });
   }

@@ -51,6 +51,20 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
     }
   };
 
+  const handleCloseOrder = async (orderId: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await orderAPI.closeOrder(orderId);
+      fetchOrders(); // Refresh orders after closing
+    } catch (error: any) {
+      console.error("❌ Error closing order:", error);
+      setError(error.response?.data?.error || "Failed to close order");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch orders from API
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -208,7 +222,10 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({
         )}
         <td className="px-4 py-3 text-sm">
           {order.status === "open" ? (
-            <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-md transition-colors">
+            <button
+              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-md transition-colors"
+              onClick={() => handleCloseOrder(order.id)}
+            >
               Close
             </button>
           ) : (

@@ -69,6 +69,49 @@ export async function OpenOrder({
   }
 }
 
+export async function CloseOrder(orderId: string, userId: string) {
+  const existingOrder = await db.select().from(orders).where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
+
+  if (existingOrder.length === 0) {
+    throw new Error("Order not found or unauthorized.");
+  }
+
+  const order = existingOrder[0];
+  if (!order) {
+    throw new Error("Order not found.");
+  }
+  if (order.status === "closed") {
+    throw new Error("Order is already closed.");
+  }
+
+  const symbolKey = order.symbol.toLowerCase();
+  const priceData = prices[symbolKey];
+
+  if (!priceData) {
+    throw new Error(`No price data available for symbol: ${order.symbol}`);
+  }
+
+  const closeTime = new Date();
+  const openPrice = order.openPrice !== undefined ? parseFloat(order.openPrice) : 0;
+  const quantity = order.quantity !== undefined ? parseFloat(order.quantity) : 0;
+  const closePrice = order.type === "buy" ? priceData.bid : priceData.ask;
+  const profitLoss = (closePrice - openPrice) * quantity * (order.type === "buy" ? 1 : -1); // Calculate profit/loss
+
+  const [updatedOrder] = await db.update(orders)
+    .set({
+      closePrice: closePrice.toString(),
+      profitLoss: profitLoss.toString(),
+      status: "closed",
+      closeTime: closeTime,
+      updatedAt: new Date(),
+      // isActive: false, // Mark as inactive
+    })
+    .where(eq(orders.id, orderId))
+    .returning();
+
+  return updatedOrder;
+}
+
 // Function to get open orders for a user
 export async function GetOpenOrders({ userId }: { userId: string }) {
   try {

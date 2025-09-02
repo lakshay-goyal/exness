@@ -53,6 +53,9 @@ export const orderAPI = {
 
   // Get closed orders
   getClosedOrders: () => api.get('/order/close'),
+
+  // Close an order
+  closeOrder: (orderId: string) => api.post('/order/close', { orderId }),
 };
 
 export default api;
